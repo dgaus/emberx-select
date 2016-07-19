@@ -91,8 +91,8 @@ export default Ember.Component.extend({
       this._updateValue();
     }
 
-    this.sendAction('action', this.get('value'), this);
-    this.sendAction('onchange', this, this.get('value'), event);
+    this.sendAction('action', this._getValue(), this);
+    this.sendAction('onchange', this, this._getValue(), event);
   },
 
   /**
@@ -100,7 +100,7 @@ export default Ember.Component.extend({
    * component's action with the component, x-select value, and the jQuery event.
    */
   click(event) {
-    this.sendAction('onclick', this, this.get('value'), event);
+    this.sendAction('onclick', this, this._getValue(), event);
   },
 
   /**
@@ -108,7 +108,7 @@ export default Ember.Component.extend({
    * component's action with the component, x-select value, and the jQuery event.
    */
   blur(event) {
-    this.sendAction('onblur', this, this.get('value'), event);
+    this.sendAction('onblur', this, this._getValue(), event);
   },
 
   /**
@@ -116,43 +116,41 @@ export default Ember.Component.extend({
    * component's action with the component, x-select value, and the jQuery event.
    */
   focusOut(event) {
-    this.sendAction('onfocusout', this, this.get('value'), event);
+    this.sendAction('onfocusout', this, this._getValue(), event);
   },
 
   /**
-   * Updates `value` with the object associated with the selected option tag
+   * Returns the object associated with the selected option tag
    *
    * @private
    */
-  _updateValueSingle: function(){
+  _getValueSingle: function(){
     var option = this.get('options').find(function(option) {
       return option.$().is(':selected');
     });
 
     if (option) {
-      this.set('value', option.get('value'));
+      return option.get('value');
     } else {
-      this.set('value', null);
+      return null;
     }
   },
 
   /**
-   * Updates `value` with an array of objects associated with the selected option tags
+   * Returns an array of objects associated with the selected option tags
    *
    * @private
    */
-  _updateValueMultiple: function() {
+  _getValueMultiple: function() {
     var options = this.get('options').filter(function(option) {
       return option.$().is(':selected');
     });
 
-    this.set('value', Ember.A(options).mapBy('value'));
+    return Ember.A(options).mapBy('value');
   },
 
   /**
-   * A utility method to determine if the select is multiple or single and call
-   * its respective method to update the value.
-   *
+   * A utility method to update the value.
    * @private
    * @utility
    */
@@ -161,10 +159,19 @@ export default Ember.Component.extend({
       return;
     }
 
+    this.set('value', this._getValue());
+  },
+
+  /**
+   * Determine if the select is multiple or single and
+   * get the value for the currently selected options
+   * @private
+   */
+  _getValue: function() {
     if (this.get('multiple')) {
-      this._updateValueMultiple();
+      return this._getValueMultiple();
     } else {
-      this._updateValueSingle();
+      return this._getValueSingle();
     }
   },
 
